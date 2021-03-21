@@ -1,0 +1,369 @@
+\documentclass[11pt]{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage[english]{babel}
+
+\usepackage{mathtools}
+
+\usepackage{setspace}
+\onehalfspacing
+
+\usepackage{amsfonts}
+\usepackage{amsmath}
+\usepackage{amsthm}
+
+\newtheorem{theorem}{Theorem}
+\newtheorem{lemma}{Lemma}
+\newtheorem{example}{Example}
+\newtheorem{definition}{Definition}
+\newtheorem{remark}{Remark}
+\newtheorem{corollary}{Corollary}
+
+\newtheorem*{theorem*}{Theorem}
+\newtheorem*{lemma*}{Lemma}
+\newtheorem*{example*}{Example}
+\newtheorem*{definition*}{Definition}
+\newtheorem*{remark*}{Remark}
+\newtheorem*{corollary*}{Corollary}
+
+\usepackage{booktabs, caption, graphicx, float, subfloat}
+\usepackage{subcaption}
+\captionsetup{tableposition=top,figureposition=bottom,font=small}
+
+\usepackage{comment}
+\usepackage{multirow}
+\usepackage{array}
+
+\newcolumntype{C}[1]{>{\centering\let\newline\\\arraybackslash\hspace{0pt}}m{#1}}
+\DeclarePairedDelimiter\floor{\lfloor}{\rfloor}
+
+\usepackage{hyperref}
+
+\usepackage{geometry}
+\geometry{a4paper, top=3cm,bottom=3cm,left=3cm,right=3cm,%
+			heightrounded}
+\usepackage{upgreek}
+
+%Dummy text
+\usepackage{lipsum}
+
+%Changing headers and footers
+\usepackage{fancyhdr}
+\pagestyle{fancy}
+\fancyhf{}
+\rhead{\textit{\thepage}}
+\lhead{\textit{PID LAB}}
+
+%For inserting the code
+\usepackage{fancyvrb}
+
+%For bold math symbols
+\usepackage{bm}
+
+%For multicolumns
+\usepackage{multicol}
+
+% Norm and abs delimiter
+\usepackage{mathtools}
+\DeclarePairedDelimiter{\abs}{\lvert}{\rvert}
+\DeclarePairedDelimiterX{\norm}[1]{\lVert}{\rVert}{#1}
+
+% Argmin/Argmax
+\DeclareMathOperator*{\argmax}{argmax}
+\DeclareMathOperator*{\argmin}{argmin}
+
+% Enumerate
+\usepackage{enumitem}
+
+% Code
+\usepackage{algorithm}
+\usepackage[noend]{algpseudocode}
+\usepackage{etoolbox}
+
+% Longtable
+\usepackage{longtable}
+
+% SI units
+\usepackage{siunitx}
+\sisetup{output-exponent-marker=\ensuremath{\mathrm{e}}}
+
+% Colours in equations
+\usepackage{xcolor}
+
+\title{PID LAB: Modelling and Simulation of a Single Axis Joint Control System }
+\author{}
+\date{}
+
+\begin{document}
+\maketitle
+The goals of this assignment are:
+\begin{itemize}
+    \item simulating a DC motor with a gearbox transmission (speed reducer),
+    \item implementing a controller (position, current)
+    \item testing the performance under various conditions.
+\end{itemize}
+%
+%
+For this assignment, we will use Simulink because it is very easy to handle different 
+objects: sums, transfer functions, Coulomb friction, quantization effect and so on. 
+These  are all blocks that you can pick from the Library Browser and connect each other. 
+Notice that blocks parameters can be either numbers or expression of variables instantiated in the workspace. 
+Thus, you may create a single Matlab file (init.m) in which you initialize variables, and a new Simulink model for each exercise. 
+The easiest way is to to add the lab directory to the Matlab path (Set Path\footnote{Note that to save path pathdef.m for ubuntu users you need to change ownership of the file: \\ \textbf{sudo chown YOURUSER:YOURUSER /usr/local/MATLAB/R2020b/toolbox/local/pathdef.m}}) and to 
+call "init.m" at the beginning.
+For all the simulations, the sampling time $T_s$ that you are using must satisfy 
+the Nyquist-Shannon sampling theorem (hint: compute the (faster) electrical constant): 
+you can adjust the sampling time in Model Properties $>$ solver $>$ Fixed step size. % from el constant
+Moreover, select the time horizon (Stop time) of your simulations in such a way to 
+make evident both the transient and the steady state (if it exists) 
+in the plots of the involved variables. All the plots must contain names and units of the variables.
+\footnote{To set units in plots: scope $>$ View $>$ Configuration properties. For x-axis $>$ Time set 'bottom display only' and 'time units', for Y-axis $>$ modify Y-label.}
+
+
+%
+\section{Model}
+Using Simulink blocks, we model the Maxon 148877 (150W, 48V) DC motor. It moves a rod through a gearbox (that you will have to select).
+%
+\begin{table}[bth]
+	\centering
+	\begin{tabular}{cccc}
+		Parameter       & Symbol      & Value & Unit\\
+		\hline \hline
+		Nominal voltage & $V_{nom}$ & $48.0$ & $\mathrm{V}$\\
+		Terminal Resistance & $R$ & $1.16$ & $\mathrm{\Omega}$ \\
+		Terminal Inductance & $L$ & $\num{0.33e-3}$ & $\mathrm{H}$ \\
+		Torque/speed Constant & $k$  & $\num{60.3e-3}$ & $\mathrm{Nm/A}$ or $\mathrm{Vs/rad}$ \\
+		Rotor Inertia & $J_m$ & $\num{134e-7}$ & $\mathrm{kgm^2}$ \\
+		Motor Damping & $b_m$ & $\num{1e-4}$ & $\mathrm{Nms/rad}$ \\
+		Null Load Current & $i_n$ & $\num{69e-3}$ & $\mathrm{A}$ 
+	\end{tabular}
+	\caption{Motor Parameters}
+	\label{motor_data}
+\end{table}
+
+%
+\par
+\textbf{M1. Model the dynamics of the DC motor and of the load (no gearbox).} 
+Connect Simulink blocks so as to model the motor, whose parameters are reported in Table \ref{motor_data}. 
+Initialize the motor position to $\theta_0 = 0$   $\mathrm{rad}$. First, feed the system with a constant supply voltage of $\bar{V} = 10 \ \mathrm{V}$. 
+Compute the steady-state operating point (no load speed, current, and torque) using the equations presented in the class and verify they match with the output of the simulation. %speed 160, settling time 0.02 seconds
+Do the same reasoning for sinusoidal voltage input $v_{\sin} (t) = A_v\sin(2 \pi f_v t)+b_v$, 
+with amplitude $A_v = 10 \ \mathrm{V}$, phase $f_v = 1 \ \mathrm{Hz}$, and bias $b_v = 0 \ \mathrm{V}$ (hint: you might need to change the end simulation time).
+
+Plot torque, velocity and position. Now set a  bias $b_v = 10 \mathrm{V}$ for the sine. 
+Is there an average value the speed is oscillating about?, why? 
+Design a moving average filter to obtain the value of the average speed (hint: use a 
+discrete filter TF block or directly the Moving Average block, you need to tune the 
+size of the window $M$ of the averaging filter). You will notice the system has a hard 
+time even with $M = 200$ and the filtering is still not significant. 
+Implement the auto-regressive version of the filter (i.e. with recursion) according to the difference equation:
+
+\begin{equation}
+y(k+1) = y(k)\frac{M-1}{M} + u(k+1)\frac{1}{M}
+\end{equation}
+
+that corresponds to the following transfer function in the Z-domain:
+\begin{equation}
+Y(z)(z - \frac{M-1}{M} ) = z \frac{1/M} X(z)
+\end{equation}
+
+therefore the numerator and the denominator of the filter transfer function are (hint: set M = 1000):
+\begin{equation}
+num = [1/M 0];
+den = [1 -(M-1)/M];
+\end{equation}
+
+\textbf{M2. Add a load.} The motor is used to control the angular position of a rod (i.e., a single link) 
+of length $L_l = 0.15 \ \mathrm{m}$ and mass $m_l = 0.2 \ \mathrm{kg}$, 
+rotating on the horizontal plane about one of its end point, having damping (viscous friction) 
+coefficient of $b_l = \num{1.99e-5} \ \mathrm{Nms/rad}$. 
+Understand how the presence of the load varies the time constants of the overall system. 
+%steady speed is reduced to 159.72 due to the additional load friction, settling time is increased to 2.5 s due to the bigger inertia 
+What happens if you set $b_l$ = 0?  % the setpoint goes back to 160.71 and the settling time slightly reduces
+Try to add a load torque of $\tau_l$ = 0.2 $Nm$, and compute the new operating point (torque and velocity) with  supply voltage of $\bar{V} = 10 \ \mathrm{V}$ How is it changed? what is the steady value of the motor torque? compare it with the previous exercise.
+
+%
+\par
+\textbf{M3. Introduce the gearbox.} As expected, at steady state, the torque has a low value while the velocity is very high (hundreds of rad/s). 
+Add a gearbox between the load and the motor, and compute the \textit{load} torque and velocity (will now be different from the motor ones (the torque should be amplified  and the velocity reduced,load side). Explain how you choose the gear ratio of the gearbox.
+Apart from load speed and torque, what else has changed with respect to the previous exercise? (hint: the gearbox amplifies rotor inertia and friction (when mapping them load side) but attenuates them (when mapping motor side), check how motor speed equilibrium point and settling time)
+%steady speed is reduced to 160.6 due to the fact load if lower motor side, settling time is reduced to 0.05  (lower inertia motor side)
+
+%elasticity
+(optional) Model the  elasticity to the transmission setting $K_t$ = 10000 Nm/rad. Where oscillations are bigger? Do you think that a reduction in the sampling time is needed? Try to reduce the stiffness of the transmission, what happens?
+%steady speed is reduced to 160.35 due to the fact load if lower motor side,
+%
+%
+\par
+\textbf{M4. Consider the motor friction.} 
+Until this moment, we have modeled the electro-mechanical system neglecting the friction torque on the motor. 
+Introduce the Coulomb friction on the load as a disturbance. 
+The Coulomb friction value $\tau_C$ can by obtained multiplying the null load current $i_n$ by the torque constant $k$; the viscous friction gain is already considered as the load/motor dampings $b_m$ and $b_l$. This time is useful to give a sinusoidal input that crosses zero ($b_v = 0 \mathrm{V}$)
+to obtain a  change in sign in speed  and visualize the friction action (hint: you might need to reduce the sampling time). Understand how the Coulomb friction in the motor it affects the load velocity. 
+What happens to speed in correspondence of the crossing points? the slope  is 
+changing due to the subtraction of the friction torque but does not seem to go to zero. 
+Try to multiply $\tau_c$ by 5. This time the pattern for the speed is different. 
+The friction torque is enough to change the sign of the torque that goes to the load, 
+and stop the motion. Plot the motor torque together with the motor speed to see this phenomena.
+%
+%
+\par
+\textbf{M5. Consider other non-idealities.} 
+Until now we have not considered that there are some limits in our actuator: e.g. the rated 
+current $i_{rated}$ and the nominal motor torque $\tau_{m, rated}$ in the model. 
+These are the maximum continuous current and the 
+maximum continuous torque that can be applied without overheat and 
+in some sense they act as symmetric saturation. Introduce them in the model 
+assuming $i_{rated} = 3.17 \ \mathrm{A}$ and $\tau_{m, rated} = 0.187 \ \mathrm{Nm}$. 
+See how these non-idealities modify the behavior of your system fed by $\bar{V}$ and $V_{\sin}$.
+You need to add some load torque $\tau_l$ to make the system hit the limits. What happens if $\tau_l = 2Nm$?
+Why only the positive limit is hit?
+%
+%
+\par
+\textbf{M6. Effect of gravity.} 
+Now, suppose that the rod rotates on a \textit{vertica}l plane and introduce a convention: the angular 
+position of the rod $\theta$ is zero if it points down; additionally, $\theta$ is positive for counter clock-wise rotations. 
+Assume that the initial position of the rod is $\theta_0 = 0.5 \ \mathrm{rad}$. 
+Model the gravity torque: as simplification, consider that the rod mass is uniformly distributed; thus, 
+the center of mass and midpoint coincide. The value of the gravity acceleration is $g = 9.81 \ \mathrm{m/s^2}$. 
+Remove any external load torque $\tau_l$ and introduce the gravity torque as a 
+disturbance, apply zero input voltage and simulate the system. 
+Plot the position of the rod, the gravity moves it toward the zero position (rod in downward position aligned with gravity). 
+Why there are no overshoots? as you remember the damping at the motor is amplified by the action of the gearbox, this 
+produces an over-damped system. Try to set $N_{opt} = 1$ and you will see that an oscillation will appear. 
+Moreover, why the equilibrium point is not exactly zero? Notice the shape of the load torque: 
+for what reason is it not smooth? try to set Coulomb friction to zero.
+Another question: what causes a non-zero current on the coil during the transient? % back emf
+Try to cut the back emf feedback and see that  the oscillations  of $\theta$  around zero increase their amplitude. %-0.16-> -0.2. 
+If you reduce the damping (e.g. $b_eq = 0.005$) the oscillations are lasting even longer. 
+If you set  $b_eq = 0.0$ the oscillation will never damp out (given that you previously set the Coulomb friction to zero) 
+and the rod will keep oscillating forever under  the action of gravity. 
+Therefore from this simple exercise we understood: 1) gravity acts like a "spring", while 2) back emf has a damping effect equivalent to  viscous friction. 
+3) the gearbox amplifies the damping sources present in the motor (friction and back emf) load side.
+%
+
+
+\par
+\section{Control}
+\noindent At this moment the model is complete. For the next exercises, 
+we pack all the blocks into a single subsystem: highlight all the blocks needed for the model 
+and click on \emph{create subsystem}. Make sure that all the scope blocks are not highlighted. 
+This will create a big box with voltage as input and many outputs (load/motor torque and velocity, 
+load position, current, friction, gravity torque). For the exercises on PID control, please do not use the PID Simlulink block: we want that you learn to synthesize controllers using gain, integrator, derivative, sum, ... 
+The strategy to control our electromechanical system consists in compensate for the back emf and divide the control into three loops:
+\begin{itemize}
+	\item current control, i.e. control of the electrical subsystem with feedback from the current;
+	\item velocity control, i.e. control of the mechanical subsystem with feedback from the load velocity;
+	\item position control, i.e. control of the integrator with feedback from the load position.
+\end{itemize}
+
+This \textit{cascade loop architecture} can be done if one ensures that 
+the bandwidth of the current loop is larger that the one of the velocity loop, 
+that is larger than the one of the position loop.
+
+
+\par
+\textbf{C1. Measure the system variables.} 
+Load position $\theta$ and  current $i$ are the only variables that are accessible in the robot, 
+but at the moment we have not added any sensor to  measure these variables. 
+Assume that $i$ is measured by reading the voltage across a $R_{sh} = 0.7 \Omega$ shunt resistor 
+via a 12 bit ADC converter that has an input range of 10 $V$. Use the \textbf{quantizer}  
+block to emulate the quantization effect of the ADC and the Zero Order Hold (ZOH) block to emulate the sampling. 
+Compare the digital signal $i_{\mathrm{meas}}$ output from the  
+current sensor you just modeled with the original one. 
+For the position signal, introduce the quantization effect produced by a $16 \ \mathrm{bit}$ 
+encoder measuring the load position $\theta_l$. Implement a digital first order IIR filter that makes 
+the output of the encoder smooth: we will call this variable $\theta_{l,\mathrm{meas}}$. 
+
+
+\begin{equation}
+y(k) = (1-\beta_p)y(k-1) + \beta_p u(k)
+\end{equation}
+
+Design the $\beta_p$ parameter of the filter to achieve a settling time $t_a = 4$ $ms$.
+Additionally, compute its  time derivative and filter it ($\dot{\theta}_{l,\mathrm{meas}}$) in an similar way. 
+Once you have completed this exercise, pack all the new blocks so as 
+to create the \textit{sensor} subsystem: this should have $i$, 
+and $\theta_l$ as inputs and $i_{\mathrm{meas}}$, 
+$\theta_{l,\mathrm{meas}}$, $\theta_{l,\mathrm{filt}}$, 
+$\dot{\theta}_{l,\mathrm{meas}}$ and $\dot{\theta}_{l,\mathrm{filt}}$ as outputs.
+
+Again, feed the system with zero input voltage: compare the measured variables with the true variables.
+See how the quantization noise is amplified in  $\dot{\theta}_{l,\mathrm{meas}}$ and how this is mitigated 
+by the presence of the filter at the price of introducing a delay. Play around with the values of $\beta_p$, $\beta_v$ 
+to see how the delay increases with a stronger filtering action. 
+%
+%
+\par
+\textbf{C2. Compensate for the back emf.} 
+We have seen that when the rod falls, a current is created. 
+Design a feedback strategy that compensate the cause of this current: 
+the back emf. You need to use $\dot{\theta}_{l,\mathrm{filt}}$ because your encoder is located 
+on the rod shaft. Restore the previous value of $N_opt$ and see that the previous over-damped behavior 
+is no longer present due to the compensation of the back emf. Check how the cancellation deteriorates (i.e. check the residual current)
+if you do the compensation using the not filtered value and that is perfect (current = 0 ) if you use the true value. 
+
+\par
+\textbf{C3. Current loop.} 
+Up to now, the motor does not control the motion of the rod, 
+which inevitably falls under the action of the gravity. Compute the current $i_g$ that corresponds to the 
+gravity torque when the load is in position $\theta_0$. This will be your current reference $i^d$.
+Now, design a P controller based on the current error that tries to track $i^d$ 
+(this should have the effect to keep the load position at $\theta_0$). 
+You can select the gain $k_{i,p}$ using the Ziegler-Nichols criterion: to do this, 
+feed the open-loop system with a step input and look at the plot of the 
+measured current to identify $K$, $\tau$ and $\theta$  
+(hint: use the true value for the back emf cancellation). You should obtain $k_{p, \mathrm{curr}} \approx 1.94 \ \mathrm{V/A}$. 
+Nevertheless, this controller is not enough: the measured load position has a steady-state value below $\theta_0$. 
+Use again the Ziegler-Nichols criterion to synthesize a PI controller: 
+you will see that the load position is kept balanced. 
+You can pack the blocks for the current PI controller into a single subsystem.
+
+
+\par
+\textbf{C4. Set-point Control.} The control law synthesized is able to maintain the load at the given initial position. But, we want to do more: we desire to bring the load position to $q_{ref} = \pi/2$. To do this, we introduce two control loops.
+\begin{itemize}
+    \item The first one is the velocity loop: based on the velocity error, a PI controller produces a feedback current $i_{\mathrm{fb}}$. This, summed with $i_g$, is the input of the current loop. Set the gain and the integration time for the velocity PI controller to $k_p = 0.0220 \ \mathrm{As/rad}$ and $T_i = 0.0892\ \mathrm{A/rad}$.
+    \item The second one is the position loop: based on the position error, a P controller produces a feedback velocity $\dot{q}_{\mathrm{fb}}$, which is the input of the velocity loop.
+\end{itemize}
+Select properly the gain of the position P controller. Discuss what happen changing this gain in terms of rise and settling time, overshoot and control effort (that is the output of your controller, i.e. the input voltage for the electromechanical process).
+\par
+\textbf{C5. Reference Tracking.} With this exercise we want to use the previous controller to track a reference. In particular, the reference load velocity $\dot{q}_\mathrm{ref}(t)$ has a bang-cost-bang profile:
+\begin{itemize}
+    \item for $0\leq t < 5 \ \mathrm{s}$, $\dot{q}_\mathrm{ref}$ has slope of $1 \ \mathrm{rad/s^2}$ (\textit{bang});
+    \item for $5\leq t < 10 \ \mathrm{s}$, $\dot{q}_\mathrm{ref}$ is constant (\textit{cost});
+    \item for $10\leq t < 15 \ \mathrm{s}$, $\dot{q}_\mathrm{ref}$ has slope of $-1 \ \mathrm{rad/s^2}$ (\textit{bang});
+    \item for $t \geq 15 \ \mathrm{s}$, $\dot{q}_\mathrm{ref}=0 \ \mathrm{rad/s}$.
+\end{itemize}
+Clearly, $\dot{q}_\mathrm{ref}(t)$ is a continuous function of time and $\dot{q}_\mathrm{ref}(0) = 0 \ \mathrm{rad/s}$. Generate the reference in terms of acceleration, velocity and position for the load, and feed the closed-loop system. Looking at the plot of the measured load position, our controller shows very low performances in tracking the reference. To solve this issue, we introduce some feed-forward actions. A feedforward action is a control law that depends only on the reference and it has to be summed with the feedback action (which, instead, depends on the tracking error): $u(t) = u_{\mathrm{ffw}}(t) + u_{\mathrm{fb}}(t)$. Actually, our system already has a feedforward control: $i_g$ depends only on $q_{\mathrm{ref}}$. The additional feedforward actions regard position and velocity, and are obtained inverting the transfer functions that have $q$ and $\dot{q}$ as output:
+\begin{itemize}
+    \item $q = \dfrac{1}{s}\dot{q} \Rightarrow \dot{q}_{\mathrm{ffw}} = s \, q_{\mathrm{ref}} \Rightarrow \dot{q}_{\mathrm{ffw}} = \dot{q}_{\mathrm{ref}}$;
+    \item $\dot{q} = \dfrac{k}{J_{eff}s+b_{eff}} i \Rightarrow i_{\mathrm{ffw}} = \dfrac{J_{eff}s + b_{eff}}{k}  \dot{q}_{\mathrm{ref}} \Rightarrow i_{\mathrm{ffw}} = \dfrac{J_{eff}}{k} \ddot{q}_{\mathrm{ref}} +  \dfrac{b_{eff}}{k} \dot{q}_{\mathrm{ref}}$.
+\end{itemize}
+Sum $\dot{q}_{\mathrm{ffw}}$ with $\dot{q}_{\mathrm{fb}}$ and $i_{\mathrm{ffw}}$ with $i_{\mathrm{fb}}$ to complete your control scheme. To have a clearer picture, you can pack the blocks so has to have a reference generator, a feedforward generator and a controller subsystem.
+\end{document}
+
+
+\textbf{C3. Power and Efficiency.}
+Plot tracking of anguar position and velocity and also the motor voltage, and the drop on the resustance (i*R) and the back emf,  showing that most of the voltage goes into backemf, and not to current. Why? plot also the motor torque. Why is is small?
+Remember that if we neglect the electrical dynamics we have:
+P_el = Pjoule losses +  Pmec
+you want to use most of the electrical into the mechanical power (motion), tryng to minimize joule losses. What happens if the motor is in stall situation?.
+(all electrical is disspated in joule losses).
+
+What happens if we add Coulomb friction? Angle does not track anymore the reference, torques are a bit higher, and there is higher joule loss cause during 
+the stick moment there is no motion but there is current and heating. YTou can see the mechanical power is zewro at that points At that pojnt the  
+
+go back to the tracking, what can we do? proportional gain
+
+whatt is the tracking of a step input?
+why torque decreasea as voltage increases? more voltage does not means more torque! the voltage foes into current an into back emf, at beginning back emf iszero cause velocity is zero and all the voltage generates current.
+
+
+tracking of a constant velocity? why steady state torque is not zero?
+
+do different plots for different increasing frictions
+
+
+
