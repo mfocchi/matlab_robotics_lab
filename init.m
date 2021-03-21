@@ -121,19 +121,38 @@ T_mec= 1/w
 % Ziegler-Nichols
 % 0.5 to 0.348 = 0.152, 0.015 - 0.129
 
-theta = 3e-4;
-tau = 5e-4;
-K = 0.86;
-frac = theta/tau;
+theta = 0.95e-3;
+t1 = 1.24e-03
+tau = t1- theta
+K = 0.92;
+
 %Proportional control
 k_p_currP = tau/(K*theta)
-
 % Proportional / integral control
 k_p_currPI = 0.9*tau/(K*theta)
 T_i_currPI = 3*theta
 
+%TF
 PI_curr = k_p_currPI * (1 + 1/(T_i_currPI*s));
 current_loop = feedback(PI_curr*P_e, 1);
+
+%% PD control position
+theta_ref = pi/2;    % reference angular position [rad] 
+k_p_pos = 1; % 0.6 better overshoot
+k_d_pos = 0.1 % 0.3 instable
+% time constant for the derivative realization filter
+tau_der = k_d_pos/(k_p_pos*10)
+
+%% PID control position
+k_p_pos = 0.6;
+k_d_pos = 0.1;
+k_i_pos = 0.6;
+tau_der = k_d_pos/(k_p_pos*20)
+
+
+% 
+% 
+% 
 
 %% Velocity Loop
 velocity_open = current_loop*P_m;
@@ -146,17 +165,23 @@ T_i_vel = PI_vel.Kp/PI_vel.Ki;
 velocity_loop = feedback(PI_vel*current_loop*P_m, 1);
 
 %% Position Loop
-q_f = pi/2;
+
 position_open = velocity_loop*1/s;
 step_pos = step(velocity_open);
 
 P_pos = pidtune(velocity_loop*1/s, 'P');
 k_p_pos = P_pos.Kp;
+% 
+% %% PD control 
+% k_p_pos  = 1
+% k_d_pos = 0.2
+% 
 
-%% Set-point Control
-t_1 = 1;
-t_2 = 0.5 + t_1;
-t_3 = 1 + t_2;
-
-
-
+% 
+% %% Set-point Control
+% t_1 = 1;
+% t_2 = 0.5 + t_1;
+% t_3 = 1 + t_2;
+% 
+% 
+% 
