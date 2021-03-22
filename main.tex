@@ -91,7 +91,7 @@
 \usepackage{xcolor}
 
 \title{PID LAB: Modelling and Simulation of a Single Axis Joint Control System }
-\author{}
+\author{Michele Focchi, Francesco Roscia and Octavio Villarreal}
 \date{}
 
 \begin{document}
@@ -99,7 +99,7 @@
 The goals of this assignment are:
 \begin{itemize}
     \item simulating a DC motor with a gearbox transmission (speed reducer),
-    \item implementing a controller (position, current)
+    \item implementing controllers (current, position, velocity)
     \item testing the performance under various conditions.
 \end{itemize}
 %
@@ -149,8 +149,10 @@ Initialize the motor position to $\theta_0 = 0$   $\mathrm{rad}$. First, feed th
 Compute the steady-state operating point (no load speed, current, and torque) using the equations presented in the class and verify they match with the output of the simulation. %speed 160, settling time 0.02 seconds
 Do the same reasoning for sinusoidal voltage input $v_{\sin} (t) = A_v\sin(2 \pi f_v t)+b_v$, 
 with amplitude $A_v = 10 \ \mathrm{V}$, phase $f_v = 1 \ \mathrm{Hz}$, and bias $b_v = 0 \ \mathrm{V}$ (hint: you might need to change the end simulation time).
-
-Plot torque, velocity and position. Now set a  bias $b_v = 10 \mathrm{V}$ for the sine. 
+ 
+Plot the voltage drop on the resistance (iR) and on the back emf,  
+showing that most of the voltage goes into back-emf, and not to current. Why? 
+Plot also motor torque, velocity and position. Now set a  bias $b_v = 10 \mathrm{V}$ for the sine. 
 Is there an average value the speed is oscillating about?, why? 
 Design a moving average filter to obtain the value of the average speed (hint: use a 
 discrete filter TF block or directly the Moving Average block, you need to tune the 
@@ -164,14 +166,13 @@ y(k+1) = y(k)\frac{M-1}{M} + u(k+1)\frac{1}{M}
 
 that corresponds to the following transfer function in the Z-domain:
 \begin{equation}
-Y(z)(z - \frac{M-1}{M} ) = z \frac{1/M} X(z)
+Y(z)\left( z - \frac{M-1}{M} \right) = z \frac{1/M} X(z)
 \end{equation}
 
 therefore the numerator and the denominator of the filter transfer function are (hint: set M = 1000):
-\begin{equation}
-num = [1/M 0];
-den = [1 -(M-1)/M];
-\end{equation}
+\begin{align}
+num = [1/M \quad 0] \quad den = [1 \quad -(M-1)/M]
+\end{align}
 
 \textbf{M2. Add a load.} The motor is used to control the angular position of a rod (i.e., a single link) 
 of length $L_l = 0.15 \ \mathrm{m}$ and mass $m_l = 0.2 \ \mathrm{kg}$, 
@@ -198,13 +199,39 @@ Apart from load speed and torque, what else has changed with respect to the prev
 \textbf{M4. Consider the motor friction.} 
 Until this moment, we have modeled the electro-mechanical system neglecting the friction torque on the motor. 
 Introduce the Coulomb friction on the load as a disturbance. 
-The Coulomb friction value $\tau_C$ can by obtained multiplying the null load current $i_n$ by the torque constant $k$; the viscous friction gain is already considered as the load/motor dampings $b_m$ and $b_l$. This time is useful to give a sinusoidal input that crosses zero ($b_v = 0 \mathrm{V}$)
+The Coulomb friction value $\tau_c$ can by obtained multiplying the null load current $i_n$ by the torque constant $k$; the viscous friction gain is already considered as the load/motor dampings $b_m$ and $b_l$. This time is useful to give a sinusoidal input that crosses zero ($b_v = 0 \mathrm{V}$)
 to obtain a  change in sign in speed  and visualize the friction action (hint: you might need to reduce the sampling time). Understand how the Coulomb friction in the motor it affects the load velocity. 
 What happens to speed in correspondence of the crossing points? the slope  is 
 changing due to the subtraction of the friction torque but does not seem to go to zero. 
 Try to multiply $\tau_c$ by 5. This time the pattern for the speed is different. 
 The friction torque is enough to change the sign of the torque that goes to the load, 
 and stop the motion. Plot the motor torque together with the motor speed to see this phenomena.
+
+
+\textbf{M4. Motor efficiency}
+Now that we introduced Coulomb friction in the system we can compute the efficiency of the motor in 
+transforming electrical power $P_{el}$  into mechanical power $P_m$ that produces motion. 
+In general:
+
+\begin{equation}
+P_{el} = P_{joule,loss} + P_{friction, loss} +   P_m
+\end{equation}
+
+and the efficiency can be computed as:
+\begin{equation}
+\eta = \frac{P_{m}}{P_{el}} =  \frac{\dot{\theta}(\tau_m - \tau_c)} {V_{nom} i }
+\end{equation}
+
+Plot the mechanical power and the efficiency for a sinusoidal voltage with $b_v = 0$. 
+See that the mechanical power goes to zero at the inversion of the motion (zero velocity).
+Negative efficiency means that the motor is generating electrical power from the load motion.
+Ideally, we want to turn most of the electrical power into the mechanical power (motion) and minimize Joule losses. 
+What happens if the motor is in stall situation? all electrical is dissipated in joule losses and efficiency is zero. 
+(hint: add a spring on the load to emulate a stall situation).
+
+%why torque decreasea as voltage increases? more voltage does not means more torque! the voltage foes into current an into back emf, at beginning back emf %is zero cause velocity is zero and all the voltage generates current.
+%tracking of a constant velocity? why steady state torque is not zero?
+%do different plots for different increasing frictions
 %
 %
 \par
@@ -311,59 +338,112 @@ which inevitably falls under the action of the gravity. Compute the current $i_g
 gravity torque when the load is in position $\theta_0$. This will be your current reference $i^d$.
 Now, design a P controller based on the current error that tries to track $i^d$ 
 (this should have the effect to keep the load position at $\theta_0$). 
-You can select the gain $k_{i,p}$ using the Ziegler-Nichols criterion: to do this, 
+You can select the gain $k_{p, \mathrm{curr}}$ using the Ziegler-Nichols criterion: to do this, 
 feed the open-loop system with a step input and look at the plot of the 
 measured current to identify $K$, $\tau$ and $\theta$  
-(hint: use the true value for the back emf cancellation). You should obtain $k_{p, \mathrm{curr}} \approx 1.94 \ \mathrm{V/A}$. 
-Nevertheless, this controller is not enough: the measured load position has a steady-state value below $\theta_0$. 
+(hint: use the true value for the back emf cancellation). You should obtain $k_{p, \mathrm{curr}} \approx 0.33 \ \mathrm{V/A}$. 
+Nevertheless, this controller is not enough: the measured current has a steady-state error about $i_g$ that results in a steady state value of position below  $\theta_0$.
 Use again the Ziegler-Nichols criterion to synthesize a PI controller: 
-you will see that the load position is kept balanced. 
+you will see that the current is properly tracked and but the load position is still  not arriving to the desired value $\theta_0$ value, because of the non idealities we have (current sensor noise, velocity sensor noise and Coulomb friction). 
+A way to circumvent this will be to close the loop on position. 
 You can pack the blocks for the current PI controller into a single subsystem.
 
+\par
+\textbf{C4. Set-point tracking with PD position Control. } 
+The control law synthesized is able to maintain the 
+load at the given initial position with some steady state error (in open loop) 
+but the approach is very sensitive to disturbances and non idealities. 
+Therefore, to improve this, we introduce a position  control loop.
+Design  PD controller that produces a reference current $i^{ref}_{\mathrm{fb}}$. 
+This, summed with $i_g$ (feed-forward term), becomes the new input $i^\mathrm{ref}$ for the current loop.
+Remember that the derivative action should be realizable so you should add a pole $1/\tau_{der}$ at high frequency.
+%if you reduce N things will go worse
+\begin{equation}
+D(s)  = K_{d,pos} \frac{s}{1 + s \tau_{der}}
+\end{equation}
+where  $\tau_{der} = k_{d,\mathrm{pos}}/(k_{p, \mathrm{pos}})$. Setting $N = 50$ should be enough, 
+but creates a high derivative action. Reducing it you will 
+see the tracking worsen but the initial peak of the derivative action will reduce too.
+Try to tune the gains $k_{p, \mathrm{pos}}$ and $k_{d, \mathrm{pos}}$  to obtain a reasonable response (low overshoot, reasonable settling time, no steady state error).
+You will see that the steady-state error due to the 
+Coulomb friction (if you remove it this will disappear) cannot be canceled completely (can be reduced increasing a lot the proportional 
+gain $k_{p, \mathrm{pos}}$) but this makes the system unstable.
+This is because there is no integral action in the controller. 
+Try to remove the feed-forward action and check how the effort of the proportional action increases to compensate 
+and how the tracking gets worse. 
+
+
+
+\textbf{C5. Set-point tracking with PID position Control. }
+Let's try to ad an integral action to our controller to remove the steady state error. 
+You will have to tune again the parameters $k_{p, \mathrm{pos}}$ and $k_{d, \mathrm{pos}}$ together with the $k_{i, \mathrm{pos}}$
+Pay attention that if you increase  $k_{i, \mathrm{pos}}$ too much oscillations will appear. 
+However, the steady state error should be gone. It still remains a quite important overshoot, thou.
+Note that the real current is saturating, meaning we might be requiring to much from our system.
+Try to increase (e.g. 0 times the limits for $\tau_{m,rated}$ and $i_{rated}$ 
+and you will see the response will significantly  improve. So, either we select a stronger motor, or we 
+tune the controller to be less aggressive and accept a slower response.
+
+
+\textbf{C5. Set-point tracking with cascade loop. }
+Another way to improve the tracking is to employ a cascade loop arquitecture. 
+In particular we can have two loops one inside the other: 
+
+\begin{itemize}
+    \item The inner one is a \textit{velocity} loop: based on the velocity error, as in the exercise C4  
+    a PD controller produces a reference current $i^{ref}_{\mathrm{fb}}$. This, summed with $i_g$ (feed-forward term), becomes the new input $i^\mathrm{ref}$ of the current loop. 
+    \item The second one is a \textit{position} loop: based on the position error, a PI controller produces a reference velocity $\dot{\theta}^\mathrm{ref}$ that becomes the input of the velocity loop.
+\end{itemize}
+%
+Keep the gains designed for the C5 exercise the same for the velocity controller and 
+select properly the gain of the position P controller. 
+See how the overshoot disappeared and the settling time reduced 
+with respect to the previous case, leading to a very nice response. 
+However, the previous PD gains for the velocity loop were too high (the reference current is in the order of 1000 of A...)
+and need to be reduced to achieve a smaller control action. 
+
 
 \par
-\textbf{C4. Set-point Control.} The control law synthesized is able to maintain the load at the given initial position. But, we want to do more: we desire to bring the load position to $q_{ref} = \pi/2$. To do this, we introduce two control loops.
+\textbf{C5. Time-varying reference Tracking.} 
+With this exercise we want to use the previous controller 
+to track a \textit{time-varying} reference (no longer a constant set-point). 
+In particular, the reference load velocity $\dot{q}_\mathrm{ref}(t)$ should \\
+have a \textit{trapezoidal} velocity profile (first accelerate at constant acceleration for 1 $s$, 
+then keep the velocity  constant for 0.5 $s$ and after that,  apply a constant deceleration during 1 $s$):
+%
 \begin{itemize}
-    \item The first one is the velocity loop: based on the velocity error, a PI controller produces a feedback current $i_{\mathrm{fb}}$. This, summed with $i_g$, is the input of the current loop. Set the gain and the integration time for the velocity PI controller to $k_p = 0.0220 \ \mathrm{As/rad}$ and $T_i = 0.0892\ \mathrm{A/rad}$.
-    \item The second one is the position loop: based on the position error, a P controller produces a feedback velocity $\dot{q}_{\mathrm{fb}}$, which is the input of the velocity loop.
+    \item for $0\leq t < 1 \ \mathrm{s}$, $\dot{\theta}^\mathrm{ref}$ has slope of $1 \ \mathrm{rad/s^2}$ (\textit{bang});
+    \item for $1\leq t < 1.5 \ \mathrm{s}$, $\dot{\theta}^\mathrm{ref}$ is constant (\textit{cost});
+    \item for $1.5\leq t < 2.5 \ \mathrm{s}$, $\dot{\theta}^\mathrm{ref}$  has slope of $-1 \ \mathrm{rad/s^2}$ (\textit{bang});
+    \item for $t \geq 2.5\ \mathrm{s}$, $\dot{q}_\mathrm{ref}=0 \ \mathrm{rad/s}$.
 \end{itemize}
-Select properly the gain of the position P controller. Discuss what happen changing this gain in terms of rise and settling time, overshoot and control effort (that is the output of your controller, i.e. the input voltage for the electromechanical process).
-\par
-\textbf{C5. Reference Tracking.} With this exercise we want to use the previous controller to track a reference. In particular, the reference load velocity $\dot{q}_\mathrm{ref}(t)$ has a bang-cost-bang profile:
+%
+Clearly, $\dot{q}_\mathrm{ref}(t)$ is a continuous function of time 
+and $\dot{\theta}^\mathrm{ref} = 0$  $\mathrm{rad/s}$. 
+Generate the previously described reference in terms of acceleration, velocity and position for the load, 
+and feed the closed-loop system. Looking at the plot of the measured load position, 
+our controller shows very low performances in tracking the reference. 
+To solve this issue, we introduce some feed-forward actions. 
+A feed-forward action is a control law that depends only on the reference and it has to be summed 
+with the feed-back action (which, instead, depends on the tracking error): 
+$u(t) = u_{\mathrm{ffwd}}(t) + u_{\mathrm{fb}}(t)$. Actually, our system already has a 
+feed-forward action $i_g$ for current to compensate for gravity torque, 
+but this depends only on $\theta^{\mathrm{ref}}$. 
+The additional feed-forward actions regard velocity and current 
+and are obtained by the time varying reference $\theta^{ref}$ and $\dot{\theta}^{ref}$:
+%
 \begin{itemize}
-    \item for $0\leq t < 5 \ \mathrm{s}$, $\dot{q}_\mathrm{ref}$ has slope of $1 \ \mathrm{rad/s^2}$ (\textit{bang});
-    \item for $5\leq t < 10 \ \mathrm{s}$, $\dot{q}_\mathrm{ref}$ is constant (\textit{cost});
-    \item for $10\leq t < 15 \ \mathrm{s}$, $\dot{q}_\mathrm{ref}$ has slope of $-1 \ \mathrm{rad/s^2}$ (\textit{bang});
-    \item for $t \geq 15 \ \mathrm{s}$, $\dot{q}_\mathrm{ref}=0 \ \mathrm{rad/s}$.
+    \item  $\dot{\theta}_{\mathrm{ffwd}} = \dot{\theta}_{\mathrm{ref}}$
+    \item $\dot{\theta} = \dfrac{k}{J_{eff}s+b_{eff}} i \Rightarrow i_{\mathrm{ffwd}} = \dfrac{J_{eff}s + b_{eff}}{k}  \dot{\theta}_{\mathrm{ref}} \Rightarrow i_{\mathrm{ffwd}} = \dfrac{J_{eff}}{k} \ddot{\theta}_{\mathrm{ref}} +  \dfrac{b_{eff}}{k} \dot{\theta}_{\mathrm{ref}}$.
 \end{itemize}
-Clearly, $\dot{q}_\mathrm{ref}(t)$ is a continuous function of time and $\dot{q}_\mathrm{ref}(0) = 0 \ \mathrm{rad/s}$. Generate the reference in terms of acceleration, velocity and position for the load, and feed the closed-loop system. Looking at the plot of the measured load position, our controller shows very low performances in tracking the reference. To solve this issue, we introduce some feed-forward actions. A feedforward action is a control law that depends only on the reference and it has to be summed with the feedback action (which, instead, depends on the tracking error): $u(t) = u_{\mathrm{ffw}}(t) + u_{\mathrm{fb}}(t)$. Actually, our system already has a feedforward control: $i_g$ depends only on $q_{\mathrm{ref}}$. The additional feedforward actions regard position and velocity, and are obtained inverting the transfer functions that have $q$ and $\dot{q}$ as output:
-\begin{itemize}
-    \item $q = \dfrac{1}{s}\dot{q} \Rightarrow \dot{q}_{\mathrm{ffw}} = s \, q_{\mathrm{ref}} \Rightarrow \dot{q}_{\mathrm{ffw}} = \dot{q}_{\mathrm{ref}}$;
-    \item $\dot{q} = \dfrac{k}{J_{eff}s+b_{eff}} i \Rightarrow i_{\mathrm{ffw}} = \dfrac{J_{eff}s + b_{eff}}{k}  \dot{q}_{\mathrm{ref}} \Rightarrow i_{\mathrm{ffw}} = \dfrac{J_{eff}}{k} \ddot{q}_{\mathrm{ref}} +  \dfrac{b_{eff}}{k} \dot{q}_{\mathrm{ref}}$.
-\end{itemize}
-Sum $\dot{q}_{\mathrm{ffw}}$ with $\dot{q}_{\mathrm{fb}}$ and $i_{\mathrm{ffw}}$ with $i_{\mathrm{fb}}$ to complete your control scheme. To have a clearer picture, you can pack the blocks so has to have a reference generator, a feedforward generator and a controller subsystem.
+
+In addition, as before,  we keep considering the current $i_g$ for gravity compensation, and the back-emf compensation voltage.
+Sum $\dot{\theta}_{\mathrm{ffw}}$   with$\dot{\theta}_{\mathrm{fb}}$ to obtain  $\dot{\theta}^{ref}$ and $i_{\mathrm{ffwd}}$ with $i_g$ and $i_{\mathrm{fb}}$ to obtain $i^{ref}$.
+To have a clearer picture, you can pack the blocks so has to have a 
+\textit{reference generator}, a \textit{feed-forward generator} and a \textit{controller} sub-system.
 \end{document}
 
 
-\textbf{C3. Power and Efficiency.}
-Plot tracking of anguar position and velocity and also the motor voltage, and the drop on the resustance (i*R) and the back emf,  showing that most of the voltage goes into backemf, and not to current. Why? plot also the motor torque. Why is is small?
-Remember that if we neglect the electrical dynamics we have:
-P_el = Pjoule losses +  Pmec
-you want to use most of the electrical into the mechanical power (motion), tryng to minimize joule losses. What happens if the motor is in stall situation?.
-(all electrical is disspated in joule losses).
-
-What happens if we add Coulomb friction? Angle does not track anymore the reference, torques are a bit higher, and there is higher joule loss cause during 
-the stick moment there is no motion but there is current and heating. YTou can see the mechanical power is zewro at that points At that pojnt the  
-
-go back to the tracking, what can we do? proportional gain
-
-whatt is the tracking of a step input?
-why torque decreasea as voltage increases? more voltage does not means more torque! the voltage foes into current an into back emf, at beginning back emf iszero cause velocity is zero and all the voltage generates current.
-
-
-tracking of a constant velocity? why steady state torque is not zero?
-
-do different plots for different increasing frictions
 
 
 

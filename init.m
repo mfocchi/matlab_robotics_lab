@@ -105,22 +105,8 @@ beta_p = T_s/(T_s+tau_p);
 tau_v = 1e-3;
 beta_v = T_s/(T_s+tau_v);
 
-%% C2 Compensation
-i_c = tau_c/k;
-
-
-s = tf('s');
-P_e = 1/(L*s+R);
-P_m = N_opt*k/(J_eq*s+b_eq);
-[w, zeta, p] = damp(P_e); 
-T_el = 1/w
-[w, zeta, p] = damp(P_m); 
-T_mec= 1/w
-
-%% Current Loop
-% Ziegler-Nichols
-% 0.5 to 0.348 = 0.152, 0.015 - 0.129
-
+%% C3 - Current Loop
+% Ziegler-Nichols tuning
 theta = 0.95e-3;
 t1 = 1.24e-03
 tau = t1- theta
@@ -132,56 +118,29 @@ k_p_currP = tau/(K*theta)
 k_p_currPI = 0.9*tau/(K*theta)
 T_i_currPI = 3*theta
 
-%TF
-PI_curr = k_p_currPI * (1 + 1/(T_i_currPI*s));
-current_loop = feedback(PI_curr*P_e, 1);
 
-%% PD control position
+%% C4 - PD control position
 theta_ref = pi/2;    % reference angular position [rad] 
-k_p_pos = 1; % 0.6 better overshoot
+k_p_pos = 1.6; % start with 1 overshoot
 k_d_pos = 0.1 % 0.3 instable
 % time constant for the derivative realization filter
-tau_der = k_d_pos/(k_p_pos*10)
+tau_der = k_d_pos/(k_p_pos*50);
 
-%% PID control position
-k_p_pos = 0.6;
-k_d_pos = 0.1;
-k_i_pos = 0.6;
-tau_der = k_d_pos/(k_p_pos*20)
+%% C5 - PID control position
+k_p_pos = 2.5;
+k_d_pos = 0.2;
+k_i_pos = 10;  % if we increase too much oscillation start
+tau_der = k_d_pos/(k_p_pos*50);
 
 
-% 
-% 
-% 
+%% C6 - Cascade loops (PI positon + PD velocity)
+k_p_vel_cascade = 0.5;
+k_d_vel_cascade = 0.05;
+k_p_pos_cascade = 20;
+k_i_pos_cascade = 10;
+tau_der = k_d_vel_cascade/(k_p_vel_cascade*50);
 
-%% Velocity Loop
-velocity_open = current_loop*P_m;
-step_vel = step(velocity_open);
-
-PI_vel = pidtune(velocity_open, 'PI');
-k_p_vel = PI_vel.Kp;
-T_i_vel = PI_vel.Kp/PI_vel.Ki;
-
-velocity_loop = feedback(PI_vel*current_loop*P_m, 1);
-
-%% Position Loop
-
-position_open = velocity_loop*1/s;
-step_pos = step(velocity_open);
-
-P_pos = pidtune(velocity_loop*1/s, 'P');
-k_p_pos = P_pos.Kp;
-% 
-% %% PD control 
-% k_p_pos  = 1
-% k_d_pos = 0.2
-% 
-
-% 
-% %% Set-point Control
-% t_1 = 1;
-% t_2 = 0.5 + t_1;
-% t_3 = 1 + t_2;
-% 
-% 
-% 
+%% C7- time-varying Reference tracking (trapezoidal velocity reference)
+t_1 = 1;
+t_2 = 0.5 + t_1;
+t_3 = 1 + t_2;
