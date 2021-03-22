@@ -144,11 +144,14 @@ Using Simulink blocks, we model the Maxon 148877 (150W, 48V) DC motor. It moves 
 %
 \par
 \textbf{M1. Model the dynamics of the DC motor and of the load (no gearbox).} 
-Connect Simulink blocks so as to model the motor, whose parameters are reported in Table \ref{motor_data}. 
-Initialize the motor position to $\theta_0 = 0$   $\mathrm{rad}$. First, feed the system with a constant supply voltage of $\bar{V} = 10 \ \mathrm{V}$. 
+Connect the Simulink blocks "Gain", "Transfer Fcn" and "sum" so as to model the motor. To access the blocks 
+open the "Library Browser" and search for them. The motor parameters to be used are reported in Table \ref{motor_data}. 
+Initialize the motor position to $\theta_0 = 0$   $\mathrm{rad}$. 
+First, feed the system with a constant supply voltage of $\bar{V} = 10 \ \mathrm{V}$. 
 Compute the steady-state operating point (no load speed, current, and torque) using the equations presented in the class and verify they match with the output of the simulation. %speed 160, settling time 0.02 seconds
 Do the same reasoning for sinusoidal voltage input $v_{\sin} (t) = A_v\sin(2 \pi f_v t)+b_v$, 
-with amplitude $A_v = 10 \ \mathrm{V}$, phase $f_v = 1 \ \mathrm{Hz}$, and bias $b_v = 0 \ \mathrm{V}$ (hint: you might need to change the end simulation time).
+with amplitude $A_v = 10 \ \mathrm{V}$, phase $f_v = 1 \ \mathrm{Hz}$, and bias 
+$b_v = 0 \ \mathrm{V}$ (hint: you might need to change the end simulation time).
  
 Plot the voltage drop on the resistance (iR) and on the back emf,  
 showing that most of the voltage goes into back-emf, and not to current. Why? 
@@ -224,7 +227,8 @@ and the efficiency can be computed as:
 
 Plot the mechanical power and the efficiency for a sinusoidal voltage with $b_v = 0$. 
 See that the mechanical power goes to zero at the inversion of the motion (zero velocity).
-Negative efficiency means that the motor is generating electrical power from the load motion.
+Negative efficiency means that the motor is generating electrical power from the load motion, 
+we put a saturation to clamp to zero negative efficiency.
 Ideally, we want to turn most of the electrical power into the mechanical power (motion) and minimize Joule losses. 
 What happens if the motor is in stall situation? all electrical is dissipated in joule losses and efficiency is zero. 
 (hint: add a spring on the load to emulate a stall situation).
@@ -269,29 +273,30 @@ and the rod will keep oscillating forever under  the action of gravity.
 Therefore from this simple exercise we understood: 1) gravity acts like a "spring", while 2) back emf has a damping effect equivalent to  viscous friction. 
 3) the gearbox amplifies the damping sources present in the motor (friction and back emf) load side.
 %
-
+%%%
+% if you increase coulombe and do not decrease Ts you can have instabilities
 
 \par
 \section{Control}
 \noindent At this moment the model is complete. For the next exercises, 
 we pack all the blocks into a single subsystem: highlight all the blocks needed for the model 
-and click on \emph{create subsystem}. Make sure that all the scope blocks are not highlighted. 
+and click on \emph{create subsystem}. Make sure that all the scope blocks are not highlighted when creating the subsystem.
 This will create a big box with voltage as input and many outputs (load/motor torque and velocity, 
-load position, current, friction, gravity torque). For the exercises on PID control, please do not use the PID Simlulink block: we want that you learn to synthesize controllers using gain, integrator, derivative, sum, ... 
-The strategy to control our electromechanical system consists in compensate for the back emf and divide the control into three loops:
+load position, current, friction, gravity torque). For the exercises on control, 
+please do not use the PID Simlulink block: we want that you learn to synthesize controllers using gain, integrator, derivative, sum, ... 
+The strategy to control our electromechanical system first consists in compensating for 
+the back-emf and divide the control into different  loops, employing a cascade architecture:
 \begin{itemize}
 	\item current control, i.e. control of the electrical subsystem with feedback from the current;
-	\item velocity control, i.e. control of the mechanical subsystem with feedback from the load velocity;
 	\item position control, i.e. control of the integrator with feedback from the load position.
+    \item velocity control, i.e. control of the mechanical subsystem with feedback from the load velocity;
 \end{itemize}
 
-This \textit{cascade loop architecture} can be done if one ensures that 
-the bandwidth of the current loop is larger that the one of the velocity loop, 
-that is larger than the one of the position loop.
-
+This \textit{cascade loop architecture} can work only if one ensures that 
+the bandwidth of the inner loop is larger that the one of the outer loops.
 
 \par
-\textbf{C1. Measure the system variables.} 
+\textbf{C1. Modeling sensors.} 
 Load position $\theta$ and  current $i$ are the only variables that are accessible in the robot, 
 but at the moment we have not added any sensor to  measure these variables. 
 Assume that $i$ is measured by reading the voltage across a $R_{sh} = 0.7 \Omega$ shunt resistor 
@@ -300,15 +305,15 @@ block to emulate the quantization effect of the ADC and the Zero Order Hold (ZOH
 Compare the digital signal $i_{\mathrm{meas}}$ output from the  
 current sensor you just modeled with the original one. 
 For the position signal, introduce the quantization effect produced by a $16 \ \mathrm{bit}$ 
-encoder measuring the load position $\theta_l$. Implement a digital first order IIR filter that makes 
+encoder measuring the load position $\theta_l$. Implement a digital first order 
+IIR (Infinite Impulse Response)  filter that makes 
 the output of the encoder smooth: we will call this variable $\theta_{l,\mathrm{meas}}$. 
-
 
 \begin{equation}
 y(k) = (1-\beta_p)y(k-1) + \beta_p u(k)
 \end{equation}
 
-Design the $\beta_p$ parameter of the filter to achieve a settling time $t_a = 4$ $ms$.
+Design the $\beta_p$ parameter of the filter to achieve a settling time of $t_a = 4$ $ms$.
 Additionally, compute its  time derivative and filter it ($\dot{\theta}_{l,\mathrm{meas}}$) in an similar way. 
 Once you have completed this exercise, pack all the new blocks so as 
 to create the \textit{sensor} subsystem: this should have $i$, 
@@ -318,7 +323,7 @@ $\dot{\theta}_{l,\mathrm{meas}}$ and $\dot{\theta}_{l,\mathrm{filt}}$ as outputs
 
 Again, feed the system with zero input voltage: compare the measured variables with the true variables.
 See how the quantization noise is amplified in  $\dot{\theta}_{l,\mathrm{meas}}$ and how this is mitigated 
-by the presence of the filter at the price of introducing a delay. Play around with the values of $\beta_p$, $\beta_v$ 
+by the presence of the filter at the price of introducing a \textit{delay}. Play around with the values of $\beta_p$, $\beta_v$ 
 to see how the delay increases with a stronger filtering action. 
 %
 %

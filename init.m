@@ -35,24 +35,21 @@ V_bar = 10;             % contant voltage       [V]
 A_v = 10;               % sine amplitude            [V]
 f_v = 1;                % sine frequency            [Hz]
 omega_v = 2*pi*f_v;     % sine pulsation            [rad/s]
-b_v = 0;%10;            % bias                      [V]
+b_v = 10;               % bias                      [V]
 
-
-%% M1- Static Characteristics
+%% M1 - Static Characteristics
 no_load_speed = k*V_bar/(k^2 + b_m*R)
 no_load_current = b_m*no_load_speed/k
 no_load_torque = no_load_current*k
-
-
 
 %% moving average FIR filter with window M
 %M = 200
 %num_filter = 1/M*ones(M,1);
 %den_filter = [1]
 %% recursive moving mean filter (auto-regressive) Y(k+1) = Y(k)*M-1/M + U(k+1)*1/M => Y *(Z - M-1/M) = Z *1/M*X
-% M = 20000
-% num_filter = [1/M 0];
-% den_filter = [1 -(M-1)/M];
+M = 40000
+num_filter = [1/M 0];
+den_filter = [1 -(M-1)/M];
 % 
 % in = 1.5+sin(2*pi*1*[0:T_s:10])
 % out_f= filter(num_filter, den_filter, in)
@@ -60,20 +57,18 @@ no_load_torque = no_load_current*k
 % plot(out_f,'r')
 % 
 % %% 1 order filter (auto-regressive) (equivalent)
-tau_filter = 2
-beta = T_s/(T_s + tau_filter)
-num_filter = [beta 0];
-den_filter = [1 -(1-beta)];
+% tau_filter = 5
+% beta = T_s/(T_s + tau_filter)
+% num_filter = [beta 0];
+% den_filter = [1 -(1-beta)];
 % out_f2= filter(num_filter, den_filter, in)
 % plot(out_f2,'b')
 
 %% M2 - Static Characteristics (no load torque)
 no_load_speed = k*V_bar/(k^2 + (b_m+b_l)*R)
 
-
 %% M3 - Gearbox
 N_opt = sqrt(J_l/J_m);
-
 J_eq = J_m*N_opt^2 + J_l; % overall inertia: motor inertia is reflected load side 
 b_eq = b_m*N_opt^2 + b_l; % overall damping: motor damping is reflected load side 
 
@@ -100,9 +95,9 @@ N_adc = 12;                 % ADC  resolution   [bit]
 V_adc = 10                % voltage range ADC [V]
 R_sh = 0.7                % value of the shunt resistor [ohm]
 
-tau_p = 1e-3;
-beta_p = T_s/(T_s+tau_p);
-tau_v = 1e-3;
+tau_p = 1e-3;             % position filter time constant [s]
+beta_p = T_s/(T_s+tau_p); 
+tau_v = 1e-3;             % speed filter time constant [s]
 beta_v = T_s/(T_s+tau_v);
 
 %% C3 - Current Loop

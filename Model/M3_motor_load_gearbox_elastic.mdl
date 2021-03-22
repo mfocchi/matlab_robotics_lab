@@ -1,5 +1,5 @@
 Model {
-  Name			  "M3_motor_load_gearbox_stiff"
+  Name			  "M3_motor_load_gearbox_elastic"
   Version		  10.2
   SavedCharacterEncoding  "UTF-8"
   ModelUUID		  "0f68c0b0-7d8f-43d4-9402-ec825e0ccde7"
@@ -7,7 +7,7 @@ Model {
     NumRootInports	    0
     NumRootOutports	    0
     ParameterArgumentNames  ""
-    ComputedModelVersion    "3.12"
+    ComputedModelVersion    "3.13"
     NumModelReferences	    0
     NumTestPointedSignals   0
     NumProvidedFunctions    0
@@ -23,12 +23,12 @@ Model {
     NumExternalFileReferences 0
     OrderedModelArguments   1
   }
-  AnimationPlugin	  "on"
-  SLCCPlugin		  "on"
-  WebScopes_FoundationPlugin "on"
-  DiagnosticSuppressor	  "on"
-  slcheck_filter_plugin	  "on"
   LogicAnalyzerPlugin	  "on"
+  WebScopes_FoundationPlugin "on"
+  SLCCPlugin		  "on"
+  slcheck_filter_plugin	  "on"
+  AnimationPlugin	  "on"
+  DiagnosticSuppressor	  "on"
   NotesPlugin		  "on"
   EnableAccessToBaseWorkspace on
   ScopeRefreshTime	  0.035000
@@ -76,10 +76,10 @@ Model {
 	IsTabbed		[1]
 	ViewObjType		"SimulinkTopLevel"
 	LoadSaveID		"0"
-	Extents			[1817.0, 852.0]
+	Extents			[1817.0, 945.0]
 	ZoomFactor		[1.25]
-	Offset			[-107.26897731399163, -147.04419214124238]
-	SceneRectInView		[-107.26897731399163, -147.04419214124238, 1453.6, 681.6]
+	Offset			[-106.86897731399131, -167.24419214124237]
+	SceneRectInView		[-106.86897731399131, -167.24419214124237, 1453.6, 756.0]
       }
       Array {
 	Type			"Simulink.DockComponentInfo"
@@ -131,7 +131,7 @@ Model {
       "ABpAG4AawA6AEUAZABpAHQAbwByADoAUgBlAGYAZQByAGUAbgBjAGUAZABGAGkAbABlAHMALwBSAGUAZgBlAHIAZQBuAGMAZQBkACAARgBpAGwAZ"
       "QBzAAAAAAD/////AAAAiQD///8AAAABAAAAAAAAAAD8AgAAAAH7AAAAVABHAEwAVQBFADIAOgBQAHIAbwBwAGUAcgB0AHkASQBuAHMAcABlAGMAd"
       "ABvAHIALwBQAHIAbwBwAGUAcgB0AHkAIABJAG4AcwBwAGUAYwB0AG8AcgAAAAAA/////wAAAawA////AAAAAwAABz8AAAD2/AEAAAAB+wAAADYAR"
-      "wBMAFUARQAyADoAUwBwAHIAZQBhAGQAUwBoAGUAZQB0AC8ATQBvAGQAZQBsAEQAYQB0AGEAAAAAAAAABz8AAAEWAP///wAABz8AAAORAAAAAQAAA"
+      "wBMAFUARQAyADoAUwBwAHIAZQBhAGQAUwBoAGUAZQB0AC8ATQBvAGQAZQBsAEQAYQB0AGEAAAAAAAAABz8AAAEWAP///wAABz8AAAPuAAAAAQAAA"
       "AIAAAABAAAAAvwAAAABAAAAAgAAAAA="
       Array {
 	Type			"Cell"
@@ -149,11 +149,11 @@ Model {
   Creator		  "ioannis"
   UpdateHistory		  "UpdateHistoryNever"
   ModifiedByFormat	  "%<Auto>"
-  LastModifiedBy	  "michelefocchi"
+  LastModifiedBy	  "mfocchi"
   ModifiedDateFormat	  "%<Auto>"
-  LastModifiedDate	  "Fri Mar 19 20:02:04 2021"
-  RTWModifiedTimeStamp	  538084920
-  ModelVersionFormat	  "%<AutoIncrement:3.12>"
+  LastModifiedDate	  "Mon Mar 22 18:21:23 2021"
+  RTWModifiedTimeStamp	  538338053
+  ModelVersionFormat	  "%<AutoIncrement:3.13>"
   SampleTimeColors	  off
   SampleTimeAnnotations	  off
   LibraryLinkDisplay	  "disabled"
@@ -212,12 +212,12 @@ Model {
     $PropName		    "DataLoggingOverride"
     $ObjectID		    9
     $ClassName		    "Simulink.SimulationData.ModelLoggingInfo"
-    model_		    "M3_motor_load_gearbox_stiff"
+    model_		    "M3_motor_load_gearbox_elastic"
     overrideMode_	    [0.0]
     Array {
       Type		      "Cell"
       Dimension		      1
-      Cell		      "M3_motor_load_gearbox_stiff"
+      Cell		      "M3_motor_load_gearbox_elastic"
       PropName		      "logAsSpecifiedByModels_"
     }
     Array {
@@ -1178,7 +1178,7 @@ Model {
     }
   }
   System {
-    Name		    "M3_motor_load_gearbox_stiff"
+    Name		    "M3_motor_load_gearbox_elastic"
     Location		    [65, 24, 1920, 1080]
     SystemRect		    [0.000000, 0.000000, 0.000000, 0.000000]
     Open		    on
@@ -1442,7 +1442,7 @@ Model {
       Name		      "Sum3"
       SID		      "78"
       Ports		      [2, 1]
-      Position		      [745, 270, 765, 290]
+      Position		      [760, 270, 780, 290]
       ZOrder		      75
       ShowName		      off
       Inputs		      "|+-"
@@ -1619,7 +1619,7 @@ Model {
 	}
 	Branch {
 	  ZOrder		  325
-	  Points		  [0, 174; -500, 0]
+	  Points		  [0, 70; -485, 0]
 	  DstBlock		  "Sum3"
 	  DstPort		  2
 	}

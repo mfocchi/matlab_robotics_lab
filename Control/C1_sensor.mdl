@@ -77,7 +77,7 @@ Model {
       UnitExpr		      "inherit"
     }
     ParameterArgumentNames  ""
-    ComputedModelVersion    "3.20"
+    ComputedModelVersion    "3.21"
     NumModelReferences	    0
     NumTestPointedSignals   0
     NumProvidedFunctions    0
@@ -126,7 +126,7 @@ Model {
       $ObjectID		      2
       $ClassName	      "Simulink.WindowInfo"
       IsActive		      [1]
-      Location		      [1985.0, 54.0, 1615.0, 1026.0]
+      Location		      [65.0, 24.0, 1855.0, 1056.0]
       Object {
 	$PropName		"ModelBrowserInfo"
 	$ObjectID		3
@@ -152,29 +152,16 @@ Model {
 	IsTabbed		[1]
 	ViewObjType		"SimulinkTopLevel"
 	LoadSaveID		"0"
-	Extents			[1577.0, 887.0]
-	ZoomFactor		[1.0]
-	Offset			[584.00233696458417, -7.7634673742244331]
-	SceneRectInView		[584.00233696458417, -7.7634673742244331, 1577.0, 887.0]
+	Extents			[1817.0, 945.0]
+	ZoomFactor		[0.8]
+	Offset			[98.85931504993664, -271.94570497514712]
+	SceneRectInView		[98.85931504993664, -271.94570497514712, 2271.25, 1181.25]
       }
       Array {
 	Type			"Simulink.DockComponentInfo"
 	Dimension		2
 	Object {
 	  $ObjectID		  6
-	  Type			  "Simulink:Editor:ReferencedFiles"
-	  ID			  "Referenced Files"
-	  Visible		  [0]
-	  CreateCallback	  ""
-	  UserData		  "{\"filterShowRefModels\":\"true\",\"filterShowRefSubs\":\"true\",\"filterShowOnlyDirtyFiles\":\"false\"}\n"
-	  Floating		  [0]
-	  DockPosition		  "Left"
-	  Width			  [640]
-	  Height		  [480]
-	  Minimized		  "Unset"
-	}
-	Object {
-	  $ObjectID		  7
 	  Type			  "GLUE2:PropertyInspector"
 	  ID			  "Property Inspector"
 	  Visible		  [0]
@@ -186,6 +173,19 @@ Model {
 	  Height		  [480]
 	  Minimized		  "Unset"
 	}
+	Object {
+	  $ObjectID		  7
+	  Type			  "Simulink:Editor:ReferencedFiles"
+	  ID			  "Referenced Files"
+	  Visible		  [0]
+	  CreateCallback	  ""
+	  UserData		  "{\"filterShowRefModels\":\"true\",\"filterShowRefSubs\":\"true\",\"filterShowOnlyDirtyFiles\":\"false\"}\n"
+	  Floating		  [0]
+	  DockPosition		  "Left"
+	  Width			  [640]
+	  Height		  [480]
+	  Minimized		  "Unset"
+	}
 	PropName		"DockComponentsInfo"
       }
       WindowState	      "AAAA/wAAAAD9AAAAAgAAAAAAAAC9AAAB+PwCAAAABPsAAAAWAEQAbwBjAGsAVwBpAGQAZwBlAHQAMwEAAAAxAAAB+AAAA"
@@ -193,7 +193,7 @@ Model {
       "ABvAG4AZQBuAHQALwBHAEwAVQBFADIAIAB0AHIAZQBlACAAYwBvAG0AcABvAG4AZQBuAHQAAAAAAP////8AAABiAP////sAAABgAFMAaQBtAHUAb"
       "ABpAG4AawA6AEUAZABpAHQAbwByADoAUgBlAGYAZQByAGUAbgBjAGUAZABGAGkAbABlAHMALwBSAGUAZgBlAHIAZQBuAGMAZQBkACAARgBpAGwAZ"
       "QBzAAAAAAD/////AAAAiQD///8AAAABAAAAAAAAAAD8AgAAAAH7AAAAVABHAEwAVQBFADIAOgBQAHIAbwBwAGUAcgB0AHkASQBuAHMAcABlAGMAd"
-      "ABvAHIALwBQAHIAbwBwAGUAcgB0AHkAIABJAG4AcwBwAGUAYwB0AG8AcgAAAAAA/////wAAAawA////AAAGTwAAA7QAAAABAAAAAgAAAAEAAAAC/"
+      "ABvAHIALwBQAHIAbwBwAGUAcgB0AHkAIABJAG4AcwBwAGUAYwB0AG8AcgAAAAAA/////wAAAawA////AAAHPwAAA+4AAAABAAAAAgAAAAEAAAAC/"
       "AAAAAEAAAACAAAAAA=="
       Array {
 	Type			"Cell"
@@ -213,9 +213,9 @@ Model {
   ModifiedByFormat	  "%<Auto>"
   LastModifiedBy	  "mfocchi"
   ModifiedDateFormat	  "%<Auto>"
-  LastModifiedDate	  "Sun Mar 21 18:03:07 2021"
-  RTWModifiedTimeStamp	  538250585
-  ModelVersionFormat	  "%<AutoIncrement:3.20>"
+  LastModifiedDate	  "Mon Mar 22 20:14:33 2021"
+  RTWModifiedTimeStamp	  538342423
+  ModelVersionFormat	  "%<AutoIncrement:3.21>"
   SampleTimeColors	  off
   SampleTimeAnnotations	  off
   LibraryLinkDisplay	  "disabled"
@@ -1313,7 +1313,7 @@ Model {
   }
   System {
     Name		    "C1_sensor"
-    Location		    [1985, 54, 3600, 1080]
+    Location		    [65, 24, 1920, 1080]
     SystemRect		    [0.000000, 0.000000, 0.000000, 0.000000]
     Open		    on
     PortBlocksUseCompactNotation off
@@ -1329,9 +1329,9 @@ Model {
     TiledPaperMargins	    [0.500000, 0.500000, 0.500000, 0.500000]
     TiledPageScale	    1
     ShowPageBoundaries	    off
-    ZoomFactor		    "100"
+    ZoomFactor		    "80"
     ReportName		    "simulink-default.rpt"
-    SIDHighWatermark	    "225"
+    SIDHighWatermark	    "228"
     SimulinkSubDomain	    "Simulink"
     Block {
       BlockType		      Clock
@@ -1434,7 +1434,7 @@ Model {
       BlockType		      Derivative
       Name		      "Derivative"
       SID		      "184"
-      Position		      [1295, 610, 1325, 640]
+      Position		      [1340, 610, 1370, 640]
       ZOrder		      707
       BlockMirror	      on
     }
@@ -1581,7 +1581,7 @@ Model {
       Position		      [1230, 360, 1260, 390]
       ZOrder		      729
       BlockMirror	      on
-      QuantizationInterval    "V_adc/R_sh/(2^N_e)"
+      QuantizationInterval    "V_adc/R_sh/(2^N_adc)"
       Port {
 	PortNumber		1
 	Name			"measured\ncurrent"
@@ -2380,6 +2380,10 @@ Model {
     }
     Line {
       Name		      "measured\nload\nvelocity"
+      FontName		      "Helvetica"
+      FontSize		      9
+      FontWeight	      "normal"
+      FontAngle		      "normal"
       ZOrder		      594
       SrcBlock		      "Sum5"
       SrcPort		      1
